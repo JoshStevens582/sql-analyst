@@ -1,12 +1,13 @@
 # SQL Analyst
 
-![CI](https://github.com/JoshStevens582/sql-analyst/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/JoshStevens582/sql-analyst/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshStevens582/sql-analyst/actions/workflows/ci.yml)
+
+**Live demo:** **https://sql-analyst.102-203-81-249.sslip.io**  
+(Portfolio HTTPS via Caddy; synthetic SQLite only — not the live ledger.)
 
 English question → model drafts SQLite → **your code** allows only read-only `SELECT` → run on a **synthetic** database → plain-language answer.
 
 **Repo:** [github.com/JoshStevens582/sql-analyst](https://github.com/JoshStevens582/sql-analyst)
-
-**Live demo (after VPS deploy):** https://sql-analyst.102-203-81-249.sslip.io
 
 This is not connected to the live warehouse ledger. Postgres and production stock live in [warehouse-ledger](https://github.com/JoshStevens582/warehouse-ledger).
 

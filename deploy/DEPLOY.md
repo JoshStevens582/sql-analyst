@@ -23,10 +23,14 @@ cp .env.example .env
 
 ```bash
 docker compose -f docker-compose.yml -f deploy/compose.edge.yml up -d --build
-curl -fsS http://127.0.0.1:8088/api/health
 ```
 
-On edge compose, port 8088 is not published to the host; use `docker exec sql-analyst curl -fsS http://127.0.0.1:8088/api/health` instead.
+`compose.edge.yml` sets `ports: []` so **8088 is not exposed** on the VPS host — traffic is **HTTPS only** through Caddy. Smoke check:
+
+```bash
+docker exec sql-analyst curl -fsS http://127.0.0.1:8088/api/health
+curl -fsS https://sql-analyst.102-203-81-249.sslip.io/api/health
+```
 
 ## 3. Caddy (Atlas web container)
 
