@@ -1,0 +1,18 @@
+[
+  {
+    "id": "product_count",
+    "question": "How many products are in the catalogue?",
+    "expect_status": "ok",
+    "expect_column": "product_count"
+  },
+  {
+    "id": "revenue",
+    "question": "What is total revenue in cents excluding cancelled orders?",
+    "expect_status": "ok"
+  },
+  {
+    "id": "shelf",
+    "question": "What is the shelf stock per SKU?",
+    "expect_status": "ok"
+  }
+]

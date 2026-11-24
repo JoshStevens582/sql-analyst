@@ -1,0 +1,63 @@
+[project]
+name = "sql-analyst"
+version = "0.1.0"
+description = "English question to read-only SQL on a synthetic database, with LangGraph guardrails."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.116.0",
+    "langgraph>=1.2.20",
+    "openai>=1.109.0",
+    "pydantic>=2.13.5",
+    "pydantic-settings>=2.10.0",
+    "sqlglot>=27.0.0",
+    "uvicorn[standard]>=0.35.0",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.0",
+    "mypy>=1.17.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.1.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.12.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--cov=sql_analyst --cov-branch --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["sql_analyst"]
+branch = true
+omit = ["tests/*"]
+
+[tool.ruff]
+target-version = "py312"
+src = ["src", "tests"]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["sql_analyst"]
+exclude = ["tests/"]
+
+[[tool.mypy.overrides]]
+module = ["sqlglot.*", "langgraph.*"]
+ignore_missing_imports = true

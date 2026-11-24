@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SQL Analyst</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0f1419;
+        --card: #1a222c;
+        --text: #e7ecf2;
+        --muted: #9aa8b6;
+        --accent: #3d8bfd;
+        --border: #2d3a49;
+        --ok: #3dd68c;
+        --warn: #f5c451;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f8fb;
+          --card: #ffffff;
+          --text: #1a2330;
+          --muted: #5c6b7a;
+          --accent: #1a6fe8;
+          --border: #d8e0e8;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 1.5rem;
+        line-height: 1.5;
+      }
+      main {
+        max-width: 52rem;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 0.25rem;
+        font-size: 1.75rem;
+      }
+      .lead {
+        color: var(--muted);
+        margin: 0 0 1rem;
+      }
+      .banner {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+      }
+      .banner strong {
+        color: var(--warn);
+      }
+      textarea {
+        width: 100%;
+        min-height: 88px;
+        padding: 0.75rem;
+        font: inherit;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--text);
+      }
+      button {
+        margin-top: 0.75rem;
+        padding: 0.55rem 1.25rem;
+        font: inherit;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+      #out {
+        margin-top: 1.25rem;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      .panel h2 {
+        margin: 0 0 0.5rem;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+      .status-ok {
+        color: var(--ok);
+        font-weight: 600;
+      }
+      pre {
+        margin: 0;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th,
+      td {
+        border: 1px solid var(--border);
+        padding: 0.4rem 0.55rem;
+        text-align: left;
+      }
+      th {
+        background: var(--bg);
+      }
+      .error {
+        color: #ff7b7b;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>SQL Analyst</h1>
+      <p class="lead">
+        Type a question, click Ask. Each click sends a new request. You should see your question
+        echoed below, then new SQL and a table.
+      </p>
+      <div id="mode-banner" class="banner" hidden></div>
+      <textarea
+        id="question"
+        placeholder="Example: What is the shelf quantity per SKU?"
+      ></textarea>
+      <br />
+      <button id="ask" type="button">Ask</button>
+      <div id="out"></div>
+    </main>
+    <script>
+      const out = document.getElementById("out");
+      const askBtn = document.getElementById("ask");
+      const questionEl = document.getElementById("question");
+      const modeBanner = document.getElementById("mode-banner");
+
+      function escapeHtml(text) {
+        return String(text)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function formatDetail(detail) {
+        if (typeof detail === "string") return detail;
+        if (Array.isArray(detail)) {
+          return detail.map((d) => d.msg || JSON.stringify(d)).join(" ");
+        }
+        return JSON.stringify(detail);
+      }
+
+      function renderTable(columns, rows) {
+        if (!columns.length) {
+          return "<p>No rows.</p>";
+        }
+        const head = columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("");
+        const body = rows
+          .map(
+            (row) =>
+              "<tr>" + row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("") + "</tr>"
+          )
+          .join("");
+        return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+      }
+
+      async function loadMode() {
+        try {
+          const res = await fetch("/api/meta");
+          const data = await res.json();
+          modeBanner.hidden = false;
+          if (data.llm_mode === "stub") {
+            modeBanner.innerHTML =
+              "<strong>Demo mode (no OpenAI key).</strong> SQL comes from fixed patterns in code, " +
+              "not ChatGPT. Answers change when the SQL changes — check the grey SQL box and table. " +
+              "Set <code>OPENAI_API_KEY</code> in <code>.env</code> and restart for real questions.";
+          } else {
+            modeBanner.textContent = "Live mode: OpenAI drafts SQL for each question.";
+          }
+        } catch {
+          modeBanner.hidden = true;
+        }
+      }
+
+      askBtn.addEventListener("click", async () => {
+        const question = questionEl.value.trim();
+        if (question.length < 3) {
+          out.innerHTML =
+            '<p class="error">Type a question with at least 3 characters, then click Ask.</p>';
+          return;
+        }
+
+        askBtn.disabled = true;
+        out.innerHTML = `<p>Thinking… (new request for: “${escapeHtml(question)}”)</p>`;
+
+        try {
+          const res = await fetch("/api/ask", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            out.innerHTML = `<p class="error">${escapeHtml(formatDetail(data.detail))}</p>`;
+            return;
+          }
+
+          const statusClass = data.status === "ok" ? "status-ok" : "";
+          out.innerHTML =
+            '<div class="panel"><h2>Your question</h2><p>' +
+            escapeHtml(data.question) +
+            "</p></div>" +
+            '<div class="panel"><h2>Result</h2><p><strong>Status:</strong> ' +
+            `<span class="${statusClass}">${escapeHtml(data.status)}</span>` +
+            (data.retry_count > 0
+              ? ` &nbsp;·&nbsp; <strong>Retries:</strong> ${data.retry_count}`
+              : "") +
+            "</p><p>" +
+            escapeHtml(data.answer) +
+            "</p></div>" +
+            '<div class="panel"><h2>SQL that ran (after safety check)</h2><pre>' +
+            escapeHtml(data.sql_query || "") +
+            "</pre></div>" +
+            '<div class="panel"><h2>Table from database</h2>' +
+            renderTable(data.query_columns || [], data.query_rows || []) +
+            "</div>";
+        } catch (err) {
+          out.innerHTML =
+            '<p class="error">Could not reach the server. Is uvicorn still running on port 8088?</p>';
+          console.error(err);
+        } finally {
+          askBtn.disabled = false;
+        }
+      });
+
+      loadMode();
+    </script>
+  </body>
+</html>
