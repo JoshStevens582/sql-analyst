@@ -1,5 +1,7 @@
 # SQL Analyst
 
+![CI](https://github.com/JoshStevens582/sql-analyst/actions/workflows/ci.yml/badge.svg)
+
 English question → model drafts SQLite → **your code** allows only read-only `SELECT` → run on a **synthetic** database → plain-language answer.
 
 Built with **LangGraph** so a failed validation or query can loop back (max 3 tries) before the API responds.
