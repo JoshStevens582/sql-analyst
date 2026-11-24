@@ -3,155 +3,414 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>SQL Analyst</title>
+    <meta
+      name="description"
+      content="English questions answered from a read-only synthetic database — LangGraph + sqlglot guardrails."
+    />
+    <title>SQL Analyst · read-only text-to-SQL</title>
     <style>
       :root {
         color-scheme: light dark;
-        --bg: #0f1419;
-        --card: #1a222c;
-        --text: #e7ecf2;
-        --muted: #9aa8b6;
-        --accent: #3d8bfd;
-        --border: #2d3a49;
+        --bg: #0b0f14;
+        --bg-elevated: #121922;
+        --card: #161e28;
+        --text: #eef2f6;
+        --muted: #8b9aab;
+        --accent: #4d9fff;
+        --accent-dim: #2a5f99;
+        --border: #263241;
         --ok: #3dd68c;
-        --warn: #f5c451;
+        --warn: #f0b429;
+        --bad: #ff6b6b;
+        --radius: 12px;
+        --shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
       }
       @media (prefers-color-scheme: light) {
         :root {
-          --bg: #f6f8fb;
+          --bg: #f0f4f8;
+          --bg-elevated: #e8edf3;
           --card: #ffffff;
-          --text: #1a2330;
-          --muted: #5c6b7a;
-          --accent: #1a6fe8;
-          --border: #d8e0e8;
+          --text: #0f1720;
+          --muted: #5a6572;
+          --accent: #1565d8;
+          --accent-dim: #c5daf5;
+          --border: #d5dde8;
+          --shadow: 0 8px 30px rgba(15, 23, 32, 0.08);
         }
       }
       * {
         box-sizing: border-box;
       }
       body {
-        font-family: system-ui, sans-serif;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
         background: var(--bg);
+        background-image: radial-gradient(
+          ellipse 120% 80% at 50% -20%,
+          var(--accent-dim),
+          transparent 55%
+        );
         color: var(--text);
         margin: 0;
-        padding: 1.5rem;
-        line-height: 1.5;
+        min-height: 100vh;
+        line-height: 1.55;
       }
-      main {
-        max-width: 52rem;
+      a {
+        color: var(--accent);
+      }
+      .wrap {
+        max-width: 44rem;
         margin: 0 auto;
+        padding: 2rem 1.25rem 3rem;
+      }
+      header {
+        margin-bottom: 1.75rem;
+      }
+      .eyebrow {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0 0 0.35rem;
       }
       h1 {
-        margin: 0 0 0.25rem;
-        font-size: 1.75rem;
+        margin: 0;
+        font-size: clamp(1.65rem, 4vw, 2.1rem);
+        font-weight: 650;
+        letter-spacing: -0.02em;
       }
-      .lead {
+      .tagline {
+        margin: 0.5rem 0 0;
         color: var(--muted);
-        margin: 0 0 1rem;
+        font-size: 1.02rem;
+        max-width: 36rem;
       }
-      .banner {
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.25rem;
+      }
+      .pill {
+        font-size: 0.78rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+      }
+      .pill strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+      .status-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.75rem 1.25rem;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1.25rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--card);
+        box-shadow: var(--shadow);
+        font-size: 0.88rem;
+      }
+      .status-bar .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted);
+        flex-shrink: 0;
+      }
+      .status-bar.live .dot {
+        background: var(--ok);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 35%, transparent);
+      }
+      .status-bar.stub .dot {
+        background: var(--warn);
+      }
+      .status-bar span.muted {
+        color: var(--muted);
+      }
+      .card {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
         margin-bottom: 1rem;
-        font-size: 0.9rem;
       }
-      .banner strong {
-        color: var(--warn);
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
       }
       textarea {
         width: 100%;
-        min-height: 88px;
-        padding: 0.75rem;
+        min-height: 96px;
+        padding: 0.85rem 1rem;
         font: inherit;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        color: var(--text);
+        resize: vertical;
+      }
+      textarea:focus {
+        outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent);
+        outline-offset: 1px;
+      }
+      .samples {
+        margin-top: 0.75rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+      .samples button {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.7rem;
         border-radius: 8px;
         border: 1px solid var(--border);
-        background: var(--card);
+        background: var(--bg-elevated);
         color: var(--text);
+        cursor: pointer;
       }
-      button {
-        margin-top: 0.75rem;
-        padding: 0.55rem 1.25rem;
+      .samples button:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .actions button.primary {
+        padding: 0.65rem 1.5rem;
         font: inherit;
+        font-weight: 600;
         border: none;
-        border-radius: 8px;
+        border-radius: 10px;
         background: var(--accent);
         color: #fff;
         cursor: pointer;
       }
-      button:disabled {
-        opacity: 0.55;
+      .actions button.primary:disabled {
+        opacity: 0.5;
         cursor: wait;
       }
+      .hint {
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+      .spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        vertical-align: -0.2rem;
+        margin-right: 0.35rem;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
       #out {
-        margin-top: 1.25rem;
+        margin-top: 1.5rem;
       }
       .panel {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 0.75rem;
+        border-radius: var(--radius);
+        padding: 1.1rem 1.2rem;
+        margin-bottom: 0.85rem;
+        box-shadow: var(--shadow);
       }
       .panel h2 {
-        margin: 0 0 0.5rem;
-        font-size: 0.85rem;
+        margin: 0 0 0.65rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
         color: var(--muted);
-      }
-      .status-ok {
-        color: var(--ok);
         font-weight: 600;
+      }
+      .answer {
+        font-size: 1.08rem;
+        margin: 0;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        margin-right: 0.5rem;
+      }
+      .badge.ok {
+        background: color-mix(in srgb, var(--ok) 22%, transparent);
+        color: var(--ok);
+      }
+      .badge.blocked,
+      .badge.failed {
+        background: color-mix(in srgb, var(--bad) 18%, transparent);
+        color: var(--bad);
+      }
+      .sql-wrap {
+        position: relative;
       }
       pre {
         margin: 0;
+        padding: 0.85rem 1rem;
         overflow-x: auto;
-        font-size: 0.9rem;
+        font-size: 0.86rem;
+        font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
         white-space: pre-wrap;
         word-break: break-word;
+        background: var(--bg-elevated);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .copy-btn {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        font-size: 0.75rem;
+        padding: 0.3rem 0.55rem;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .copy-btn:hover {
+        color: var(--text);
+      }
+      .table-scroll {
+        overflow-x: auto;
+        border-radius: 8px;
+        border: 1px solid var(--border);
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
       }
       th,
       td {
-        border: 1px solid var(--border);
-        padding: 0.4rem 0.55rem;
+        padding: 0.5rem 0.65rem;
         text-align: left;
+        border-bottom: 1px solid var(--border);
       }
       th {
-        background: var(--bg);
+        background: var(--bg-elevated);
+        font-weight: 600;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      tr:last-child td {
+        border-bottom: none;
       }
       .error {
-        color: #ff7b7b;
+        color: var(--bad);
+      }
+      footer {
+        margin-top: 2.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      footer p {
+        margin: 0.35rem 0;
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>SQL Analyst</h1>
-      <p class="lead">
-        Type a question, click Ask. Each click sends a new request. You should see your question
-        echoed below, then new SQL and a table.
-      </p>
-      <div id="mode-banner" class="banner" hidden></div>
-      <textarea
-        id="question"
-        placeholder="Example: What is the shelf quantity per SKU?"
-      ></textarea>
-      <br />
-      <button id="ask" type="button">Ask</button>
-      <div id="out"></div>
-    </main>
+    <div class="wrap">
+      <header>
+        <p class="eyebrow">Portfolio demo</p>
+        <h1>SQL Analyst</h1>
+        <p class="tagline">
+          Ask in English. The model drafts SQL — then
+          <strong>sqlglot</strong> and a read-only database decide what actually runs.
+        </p>
+        <div class="pills">
+          <span class="pill"><strong>LangGraph</strong> generate → validate → execute → summarize</span>
+          <span class="pill"><strong>Synthetic</strong> SQLite — not live ledger Postgres</span>
+          <span class="pill"><strong>Guardrails</strong> in Python, not prompt-only</span>
+        </div>
+      </header>
+
+      <div id="status-bar" class="status-bar stub" hidden>
+        <span class="dot" aria-hidden="true"></span>
+        <span id="status-text">Loading…</span>
+      </div>
+
+      <section class="card" aria-labelledby="ask-label">
+        <label id="ask-label" for="question">Your question</label>
+        <textarea
+          id="question"
+          placeholder="e.g. What is total revenue in cents excluding cancelled orders?"
+        ></textarea>
+        <div class="samples" aria-label="Sample questions">
+          <button type="button" data-q="How many products are in the catalogue?">Catalogue count</button>
+          <button type="button" data-q="What is total revenue in cents excluding cancelled orders?">
+            Revenue (cents)
+          </button>
+          <button type="button" data-q="What is the shelf stock per SKU?">Shelf stock by SKU</button>
+        </div>
+        <div class="actions">
+          <button id="ask" type="button" class="primary">Ask</button>
+          <span class="hint">Ctrl + Enter to submit</span>
+        </div>
+      </section>
+
+      <div id="out" aria-live="polite"></div>
+
+      <footer>
+        <p>
+          Demo data only. Production inventory and payments live in
+          <a href="https://github.com/JoshStevens582/warehouse-ledger" rel="noopener">warehouse-ledger</a>.
+        </p>
+        <p>
+          <a id="repo-link" href="https://github.com/JoshStevens582/sql-analyst" rel="noopener">Source on GitHub</a>
+        </p>
+      </footer>
+    </div>
     <script>
       const out = document.getElementById("out");
       const askBtn = document.getElementById("ask");
       const questionEl = document.getElementById("question");
-      const modeBanner = document.getElementById("mode-banner");
+      const statusBar = document.getElementById("status-bar");
+      const statusText = document.getElementById("status-text");
+      const repoLink = document.getElementById("repo-link");
+
+      const samples = document.querySelectorAll(".samples button[data-q]");
+      samples.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          questionEl.value = btn.getAttribute("data-q") || "";
+          questionEl.focus();
+        });
+      });
+
+      questionEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          askBtn.click();
+        }
+      });
 
       function escapeHtml(text) {
         return String(text)
@@ -171,7 +430,7 @@
 
       function renderTable(columns, rows) {
         if (!columns.length) {
-          return "<p>No rows.</p>";
+          return "<p class='muted'>No rows returned.</p>";
         }
         const head = columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("");
         const body = rows
@@ -180,37 +439,63 @@
               "<tr>" + row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("") + "</tr>"
           )
           .join("");
-        return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+        return `<div class="table-scroll"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
       }
 
-      async function loadMode() {
+      async function loadMeta() {
         try {
           const res = await fetch("/api/meta");
           const data = await res.json();
-          modeBanner.hidden = false;
+          statusBar.hidden = false;
+          statusBar.classList.remove("live", "stub");
+          if (data.repo) {
+            repoLink.href = data.repo;
+          }
+          const caps = `Row cap ${data.max_rows || "200"} · up to ${data.max_retries || "3"} SQL fixes`;
           if (data.llm_mode === "stub") {
-            modeBanner.innerHTML =
-              "<strong>Demo mode (no OpenAI key).</strong> SQL comes from fixed patterns in code, " +
-              "not ChatGPT. Answers change when the SQL changes — check the grey SQL box and table. " +
-              "Set <code>OPENAI_API_KEY</code> in <code>.env</code> and restart for real questions.";
+            statusBar.classList.add("stub");
+            statusText.innerHTML =
+              "<strong>Stub mode</strong> <span class='muted'>— deterministic SQL patterns (CI). " +
+              caps + ". Set OPENAI_API_KEY on the server for live drafting.</span>";
           } else {
-            modeBanner.textContent = "Live mode: OpenAI drafts SQL for each question.";
+            statusBar.classList.add("live");
+            statusText.innerHTML =
+              `<strong>Live</strong> <span class='muted'>— ${escapeHtml(data.model || "OpenAI")} · ${escapeHtml(data.database || "demo")} · ${caps}</span>`;
           }
         } catch {
-          modeBanner.hidden = true;
+          statusBar.hidden = true;
         }
+      }
+
+      function bindCopy(btnId, sql) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(sql);
+            btn.textContent = "Copied";
+            setTimeout(() => {
+              btn.textContent = "Copy";
+            }, 1500);
+          } catch {
+            btn.textContent = "Failed";
+          }
+        });
       }
 
       askBtn.addEventListener("click", async () => {
         const question = questionEl.value.trim();
         if (question.length < 3) {
           out.innerHTML =
-            '<p class="error">Type a question with at least 3 characters, then click Ask.</p>';
+            '<p class="error panel">Type a question with at least 3 characters, then click Ask.</p>';
           return;
         }
 
         askBtn.disabled = true;
-        out.innerHTML = `<p>Thinking… (new request for: “${escapeHtml(question)}”)</p>`;
+        out.innerHTML =
+          '<div class="panel"><span class="spinner"></span> Running LangGraph for: “' +
+          escapeHtml(question) +
+          "”…</div>";
 
         try {
           const res = await fetch("/api/ask", {
@@ -220,39 +505,52 @@
           });
           const data = await res.json();
           if (!res.ok) {
-            out.innerHTML = `<p class="error">${escapeHtml(formatDetail(data.detail))}</p>`;
+            out.innerHTML = `<div class="panel error">${escapeHtml(formatDetail(data.detail))}</div>`;
             return;
           }
 
-          const statusClass = data.status === "ok" ? "status-ok" : "";
+          const badgeClass = data.status === "ok" ? "ok" : data.status;
+          const copyId = "copy-sql-" + Date.now();
+          const sqlText = data.sql_query || "";
+
+          let extra = "";
+          if (data.retry_count > 0) {
+            extra += `<p class="hint" style="margin:0.5rem 0 0">SQL revised ${data.retry_count} time(s) after validation or execution errors.</p>`;
+          }
+          if (data.status !== "ok" && data.error_log && data.error_log.length) {
+            extra +=
+              "<p class='error' style='margin:0.5rem 0 0;font-size:0.85rem'>" +
+              escapeHtml(data.error_log.join(" · ")) +
+              "</p>";
+          }
+
           out.innerHTML =
-            '<div class="panel"><h2>Your question</h2><p>' +
+            '<div class="panel"><h2>Answer</h2>' +
+            `<span class="badge ${badgeClass}">${escapeHtml(data.status)}</span>` +
+            `<p class="answer">${escapeHtml(data.answer)}</p>${extra}</div>` +
+            '<div class="panel"><h2>Question</h2><p style="margin:0">' +
             escapeHtml(data.question) +
             "</p></div>" +
-            '<div class="panel"><h2>Result</h2><p><strong>Status:</strong> ' +
-            `<span class="${statusClass}">${escapeHtml(data.status)}</span>` +
-            (data.retry_count > 0
-              ? ` &nbsp;·&nbsp; <strong>Retries:</strong> ${data.retry_count}`
-              : "") +
-            "</p><p>" +
-            escapeHtml(data.answer) +
-            "</p></div>" +
-            '<div class="panel"><h2>SQL that ran (after safety check)</h2><pre>' +
-            escapeHtml(data.sql_query || "") +
-            "</pre></div>" +
-            '<div class="panel"><h2>Table from database</h2>' +
+            '<div class="panel"><h2>SQL (after safety check)</h2><div class="sql-wrap">' +
+            (sqlText
+              ? `<button type="button" class="copy-btn" id="${copyId}">Copy</button><pre>${escapeHtml(sqlText)}</pre>`
+              : "<pre><em>No SQL executed.</em></pre>") +
+            "</div></div>" +
+            '<div class="panel"><h2>Result set</h2>' +
             renderTable(data.query_columns || [], data.query_rows || []) +
             "</div>";
+
+          if (sqlText) bindCopy(copyId, sqlText);
         } catch (err) {
           out.innerHTML =
-            '<p class="error">Could not reach the server. Is uvicorn still running on port 8088?</p>';
+            '<div class="panel error">Could not reach the server. Check that the API is running.</div>';
           console.error(err);
         } finally {
           askBtn.disabled = false;
         }
       });
 
-      loadMode();
+      loadMeta();
     </script>
   </body>
 </html>

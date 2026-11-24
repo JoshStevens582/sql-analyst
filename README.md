@@ -6,6 +6,8 @@ English question → model drafts SQLite → **your code** allows only read-only
 
 **Repo:** [github.com/JoshStevens582/sql-analyst](https://github.com/JoshStevens582/sql-analyst)
 
+**Live demo (after VPS deploy):** https://sql-analyst.102-203-81-249.sslip.io
+
 This is not connected to the live warehouse ledger. Postgres and production stock live in [warehouse-ledger](https://github.com/JoshStevens582/warehouse-ledger).
 
 ## How it works
@@ -68,3 +70,12 @@ uv run pytest
 ```
 
 Eval cases: `evals/questions.json`, exercised in `tests/test_eval_cases.py`.
+
+## Docker and deploy
+
+```bash
+docker compose up -d --build
+# open http://127.0.0.1:8088
+```
+
+Portfolio VPS (Caddy + `cca-edge`): see [deploy/DEPLOY.md](deploy/DEPLOY.md).
