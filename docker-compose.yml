@@ -1,0 +1,17 @@
+# Local or VPS: API + desk UI on port 8088.
+# Production on the ledger VPS: use deploy/compose.edge.yml (no host port) + Caddy.
+
+services:
+  sql-analyst:
+    build: .
+    ports:
+      - "8088:8088"
+    env_file:
+      - .env
+    environment:
+      SQL_ANALYST_DATABASE_PATH: /app/data/demo.db
+    volumes:
+      - sql_analyst_data:/app/data
+
+volumes:
+  sql_analyst_data:

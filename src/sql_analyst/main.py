@@ -48,7 +48,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/meta")
     def meta() -> dict[str, str]:
         mode = "openai" if cfg.openai_api_key else "stub"
-        return {"llm_mode": mode, "model": cfg.openai_model if mode == "openai" else "stub"}
+        return {
+            "llm_mode": mode,
+            "model": cfg.openai_model if mode == "openai" else "stub",
+            "database": "synthetic SQLite (read-only)",
+            "max_rows": str(cfg.max_rows),
+            "max_retries": str(cfg.max_retries),
+            "repo": "https://github.com/JoshStevens582/sql-analyst",
+        }
 
     @app.post("/api/ask", response_model=AskOut)
     def ask(body: AskIn) -> AskOut:

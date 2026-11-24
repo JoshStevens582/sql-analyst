@@ -1,0 +1,18 @@
+# Portfolio SQL Analyst — append to /opt/atlas/deploy/Caddyfile (see deploy/DEPLOY.md).
+# sslip.io hostname resolves to 102.203.81.249 (same VPS as warehouse-ledger).
+
+sql-analyst.102-203-81-249.sslip.io {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+		-Server
+	}
+
+	reverse_proxy sql-analyst:8088 {
+		flush_interval -1
+	}
+}

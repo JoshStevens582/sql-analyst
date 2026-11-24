@@ -1,0 +1,26 @@
+# Rackzar / atlas stack: app only, Caddy terminates TLS (see caddy-sql-analyst.caddy).
+
+services:
+  sql-analyst:
+    build: .
+    container_name: sql-analyst
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      SQL_ANALYST_DATABASE_PATH: /app/data/demo.db
+    volumes:
+      - sql_analyst_data:/app/data
+    expose:
+      - "8088"
+    networks:
+      - default
+      - cca-edge
+
+networks:
+  cca-edge:
+    name: cca-edge
+    external: true
+
+volumes:
+  sql_analyst_data:
