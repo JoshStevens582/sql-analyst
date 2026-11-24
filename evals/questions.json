@@ -3,16 +3,21 @@
     "id": "product_count",
     "question": "How many products are in the catalogue?",
     "expect_status": "ok",
-    "expect_column": "product_count"
+    "expect_column": "product_count",
+    "expect_scalar": 4
   },
   {
     "id": "revenue",
     "question": "What is total revenue in cents excluding cancelled orders?",
-    "expect_status": "ok"
+    "expect_status": "ok",
+    "expect_column": "revenue_cents",
+    "expect_scalar": 48600
   },
   {
     "id": "shelf",
     "question": "What is the shelf stock per SKU?",
-    "expect_status": "ok"
+    "expect_status": "ok",
+    "expect_column": "shelf_qty",
+    "expect_min_rows": 4
   }
 ]
