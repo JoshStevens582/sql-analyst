@@ -34,7 +34,7 @@ Append `deploy/caddy-sql-analyst.caddy` to `/opt/atlas/deploy/Caddyfile`, then r
 
 ```bash
 grep -q 'sql-analyst.102-203-81-249.sslip.io' /opt/atlas/deploy/Caddyfile || \
-  cat /opt/sql-analyst/deploy/caddy-sql-analyst.caddy >> /opt/atlas/deploy/Caddyfile
+  { echo >> /opt/atlas/deploy/Caddyfile; cat /opt/sql-analyst/deploy/caddy-sql-analyst.caddy >> /opt/atlas/deploy/Caddyfile; }
 cd /opt/atlas && docker compose -f docker-compose.yml -f deploy/compose.counter-edge.yml up -d --build web
 ```
 
