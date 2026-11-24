@@ -24,8 +24,10 @@ fi
 docker compose -f docker-compose.yml -f deploy/compose.edge.yml up -d --build
 
 if [ -d "${ATLAS_DIR}/deploy" ]; then
-  grep -q "${HOST}" "${ATLAS_DIR}/deploy/Caddyfile" || \
+  if ! grep -q "${HOST}" "${ATLAS_DIR}/deploy/Caddyfile"; then
+    echo >> "${ATLAS_DIR}/deploy/Caddyfile"
     cat "${APP_DIR}/deploy/caddy-sql-analyst.caddy" >> "${ATLAS_DIR}/deploy/Caddyfile"
+  fi
   (cd "${ATLAS_DIR}" && docker compose -f docker-compose.yml -f deploy/compose.counter-edge.yml up -d --build web)
 else
   echo "Atlas not at ${ATLAS_DIR}; append deploy/caddy-sql-analyst.caddy to your Caddyfile manually."
