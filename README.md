@@ -74,9 +74,11 @@ Eval cases: `evals/questions.json`, exercised in `tests/test_eval_cases.py`.
 
 ## Docker and deploy
 
+**Local:**
+
 ```bash
 docker compose up -d --build
-# open http://127.0.0.1:8088
+# http://127.0.0.1:8088
 ```
 
-Portfolio VPS (Caddy + `cca-edge`): see [deploy/DEPLOY.md](deploy/DEPLOY.md).
+**Portfolio VPS (HTTPS only, no public :8088):** [deploy/DEPLOY.md](deploy/DEPLOY.md) — `docker compose -f deploy/compose.edge.yml up -d --build`

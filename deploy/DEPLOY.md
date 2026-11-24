@@ -22,10 +22,10 @@ cp .env.example .env
 ## 2. Run the container (edge)
 
 ```bash
-docker compose -f docker-compose.yml -f deploy/compose.edge.yml up -d --build
+docker compose -f deploy/compose.edge.yml up -d --build
 ```
 
-`compose.edge.yml` sets `ports: []` so **8088 is not exposed** on the VPS host — traffic is **HTTPS only** through Caddy. Smoke check:
+Do **not** merge `docker-compose.yml` on the VPS — that file publishes `8088` for local dev. **HTTPS only** through Caddy. Smoke check:
 
 ```bash
 docker exec sql-analyst curl -fsS http://127.0.0.1:8088/api/health

@@ -1,5 +1,5 @@
-# Local or VPS: API + desk UI on port 8088.
-# Production on the ledger VPS: use deploy/compose.edge.yml (no host port) + Caddy.
+# Local dev only: desk on http://127.0.0.1:8088
+# VPS production: docker compose -f deploy/compose.edge.yml up -d --build  (HTTPS via Caddy)
 
 services:
   sql-analyst:

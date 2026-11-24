@@ -1,11 +1,10 @@
-# Rackzar / atlas stack: app only, Caddy terminates TLS (see caddy-sql-analyst.caddy).
-# Always use with docker-compose.yml: `ports: []` overrides local 8088 publish — HTTPS only.
+# Production on the portfolio VPS — use this file alone (no docker-compose.yml merge).
+# Nothing is published on host :8088; Caddy on cca-edge proxies HTTPS only.
 
 services:
   sql-analyst:
     build: .
     container_name: sql-analyst
-    ports: []
     restart: unless-stopped
     env_file:
       - .env
