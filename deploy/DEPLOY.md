@@ -22,7 +22,7 @@ cp .env.example .env
 ## 2. Run the container (edge)
 
 ```bash
-docker compose -f deploy/compose.edge.yml up -d --build
+docker compose --project-directory . -f deploy/compose.edge.yml up -d --build
 ```
 
 Do **not** merge `docker-compose.yml` on the VPS — that file publishes `8088` for local dev. **HTTPS only** through Caddy. Smoke check:

@@ -21,7 +21,7 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-docker compose -f deploy/compose.edge.yml up -d --build
+docker compose --project-directory . -f deploy/compose.edge.yml up -d --build
 
 if [ -d "${ATLAS_DIR}/deploy" ]; then
   if ! grep -q "${HOST}" "${ATLAS_DIR}/deploy/Caddyfile"; then

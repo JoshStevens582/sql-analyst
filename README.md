@@ -81,4 +81,4 @@ docker compose up -d --build
 # http://127.0.0.1:8088
 ```
 
-**Portfolio VPS (HTTPS only, no public :8088):** [deploy/DEPLOY.md](deploy/DEPLOY.md) — `docker compose -f deploy/compose.edge.yml up -d --build`
+**Portfolio VPS (HTTPS only, no public :8088):** [deploy/DEPLOY.md](deploy/DEPLOY.md) — `docker compose --project-directory . -f deploy/compose.edge.yml up -d --build`

@@ -1,5 +1,8 @@
 # Production on the portfolio VPS — use this file alone (no docker-compose.yml merge).
 # Nothing is published on host :8088; Caddy on cca-edge proxies HTTPS only.
+#
+# From repo root:
+#   docker compose --project-directory . -f deploy/compose.edge.yml up -d --build
 
 services:
   sql-analyst:
