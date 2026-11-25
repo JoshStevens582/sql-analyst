@@ -17,3 +17,26 @@ jobs:
       - run: uv run ruff check .
       - run: uv run mypy .
       - run: uv run pytest
+
+  deploy:
+    name: Deploy to VPS
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH pull and compose
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          command_timeout: 15m
+          script: |
+            set -eu
+            test -d /opt/sql-analyst
+            cd /opt/sql-analyst
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            chmod +x deploy/remote-update.sh
+            ./deploy/remote-update.sh

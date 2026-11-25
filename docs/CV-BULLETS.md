@@ -14,7 +14,7 @@ Python, FastAPI, LangGraph, OpenAI, sqlglot, SQLite (synthetic), pytest, ruff, m
 
 - **Deterministic read-only guardrails**: **sqlglot** rejects writes and multi-statement SQL before run; SQLite opens with **`mode=ro`** on a synthetic demo database (not production data).
 
-- **pytest** eval cases load `evals/questions.json`; CI runs **ruff**, **mypy**, and tests on every push to **main**.
+- **pytest** eval cases load `evals/questions.json`; **GitHub Actions** runs **ruff**, **mypy**, and tests on every push; if they pass, GitHub updates the live demo.
 
 **Skills / interview (one sentence)**  
 “The model drafts SQL; Python and sqlglot must approve it before the database runs, and the graph can loop on errors up to three times.”

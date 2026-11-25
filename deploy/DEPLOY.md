@@ -3,6 +3,10 @@
 **Live URL (after setup):** `https://sql-analyst.102-203-81-249.sslip.io`  
 Same sslip pattern as [warehouse-ledger](https://github.com/JoshStevens582/warehouse-ledger) on `102.203.81.249`.
 
+Pushes to `main` run ruff, mypy, and pytest, then GitHub Actions SSHs to the VPS, resets `/opt/sql-analyst` to `origin/main`, and rebuilds `deploy/compose.edge.yml`. Do not edit tracked files on the VPS. Keep `.env` on the box only.
+
+Repo secrets (set once, never commit): `DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`.
+
 ## Prerequisites
 
 - Docker on the VPS (`cca-edge` network exists — see ledger `deploy/rackzar.md`)
